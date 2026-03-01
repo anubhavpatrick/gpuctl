@@ -59,8 +59,10 @@ _node_selector_whiptail() {
 
     local selected
     # whiptail --menu: title, height, width, list-height, then tag/item pairs.
+    # --fb = full-size buttons (required so actbutton colors apply; compact
+    # buttons use inverted compactbutton colors which can be hard to read).
     # Writes selection to stderr (3>&1 1>&2 2>&3 swaps stdout/stderr to capture).
-    selected="$(whiptail --title "Select Worker Node" \
+    selected="$(whiptail --title "Select Worker Node" --fb \
         --menu "Choose a node to view details:" \
         $(( menu_height + 8 )) 50 "$menu_height" \
         "${menu_items[@]}" \
@@ -201,17 +203,29 @@ show_node_detail() {
         tput cnorm 2>/dev/null || true
         stty echo icanon 2>/dev/null || true
 
-        # Render into a temporary file and use --textbox instead of --msgbox:
-        # this uses whiptail/newt's native scroll widget, which consistently
-        # shows the right-side scrollbar for overflow content.
-        local detail_text detail_tmp
+        # printf %b interprets \n escape sequences in $detail
+        local detail_text
         printf -v detail_text "%b" "$detail"
-        detail_tmp="$(mktemp "/tmp/gpuctl-node-detail.XXXXXX")"
-        printf "%s\n" "$detail_text" > "$detail_tmp"
 
-        # Do not let dialog exit status skip temp cleanup under set -e.
-        whiptail --title "$node" --scrolltext --textbox "$detail_tmp" 24 70 || true
-        rm -f -- "$detail_tmp"
+        # Count content lines to compute dialog height dynamically.
+        local line_count
+        line_count="$(printf "%s" "$detail_text" | wc -l)"
+        # Dialog chrome overhead: top/bottom border, title, padding, button row.
+        local dialog_height=$(( line_count + 7 ))
+        local scroll_flag=""
+
+        # Only enable --scrolltext when content exceeds terminal height.
+        # In many whiptail/newt builds, scroll mode repurposes the right column
+        # for scrollbar rendering, so preserving non-scroll mode avoids the
+        # "missing right border" look when content already fits.
+        if (( dialog_height > TERM_ROWS - 2 )); then
+            dialog_height=$(( TERM_ROWS - 2 ))
+            scroll_flag="--scrolltext"
+        fi
+
+        # --fb = full-size buttons for consistent focus rendering.
+        # $scroll_flag is intentionally unquoted: empty when not needed.
+        whiptail --title "$node" --fb $scroll_flag --msgbox "$detail_text" "$dialog_height" 70
 
         tput civis 2>/dev/null || true
         stty -echo -icanon 2>/dev/null || true
@@ -252,7 +266,8 @@ show_help() {
         stty echo icanon 2>/dev/null || true
 
         printf -v help_display "%b" "$help_text"
-        whiptail --title "Help" --msgbox "$help_display" 18 50
+        # --fb = full-size buttons for consistent focus rendering.
+        whiptail --title "Help" --fb --msgbox "$help_display" 18 50
 
         tput civis 2>/dev/null || true
         stty -echo -icanon 2>/dev/null || true
