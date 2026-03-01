@@ -23,6 +23,22 @@
 set -euo pipefail
 
 # ============================================================================
+# PRIVILEGE ESCALATION
+# ============================================================================
+# gpuctl requires root to query pods across all namespaces (RBAC restriction).
+# If invoked by a non-root user, re-exec via sudo so the sudoers drop-in
+# (/etc/sudoers.d/gpuctl) handles passwordless elevation transparently.
+# This satisfies NFR-07: users just type "gpuctl" without explicit "sudo".
+#
+# exec replaces the current process (no extra shell left behind).
+# "$0" is the path to this script; "$@" forwards all original arguments.
+
+# id -u returns the effective user ID; 0 = root
+if (( $(id -u) != 0 )); then
+    exec sudo "$0" "$@"
+fi
+
+# ============================================================================
 # LIBRARY PATH DETECTION
 # ============================================================================
 
