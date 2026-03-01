@@ -73,10 +73,13 @@ init_colors() {
         #   actsellistbox = highlighted item in a focused listbox (fixes
         #                   default pink by overriding to white-on-green)
         #   sellistbox    = selected item in an unfocused listbox
-        #   compactbutton = unstyled compact button variant (ensures Tab
-        #                   between OK/Cancel produces a visible change)
+        #   button/actbutton/compactbutton = some whiptail/newt builds render
+        #                   dialog buttons with standard button widgets, while
+        #                   others use compact button variants. We assign
+        #                   explicit inactive vs active colors to both paths so
+        #                   Tab focus remains visible on all supported dialogs.
         #   acttextbox    = focused textbox background
-        export NEWT_COLORS='root=white,black:border=green,black:window=white,black:shadow=white,black:title=green,black:button=black,white:actbutton=white,green:compactbutton=black,white:listbox=black,white:actlistbox=white,green:sellistbox=black,white:actsellistbox=white,green:textbox=white,black:acttextbox=white,black:label=white,black:helpline=white,black'
+        export NEWT_COLORS='root=white,black:border=green,black:window=white,black:shadow=white,black:title=green,black:button=black,white:actbutton=black,green:compactbutton=black,green:listbox=black,white:actlistbox=white,green:sellistbox=black,white:actsellistbox=white,green:textbox=white,black:acttextbox=white,black:label=white,black:helpline=white,black'
     fi
 
     if [[ "$HAS_UNICODE" == true ]]; then
