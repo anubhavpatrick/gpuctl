@@ -51,8 +51,10 @@ _node_selector_whiptail() {
     menu_height="${#NODE_LIST[@]}"
     (( menu_height > 10 )) && menu_height=10
 
-    # Temporarily show cursor and enable echo for whiptail interaction
-    tput cnorm 2>/dev/null || true
+    # Temporarily show cursor and enable echo for whiptail interaction.
+    # Redirect tput output to /dev/tty so escape sequences don't leak into
+    # stdout (this function runs inside $() capture in handle_keypress).
+    tput cnorm >/dev/tty 2>/dev/null || true
     stty echo icanon 2>/dev/null || true
 
     local selected
@@ -65,7 +67,7 @@ _node_selector_whiptail() {
         3>&1 1>&2 2>&3)" || selected=""
 
     # Re-hide cursor and disable echo for dashboard
-    tput civis 2>/dev/null || true
+    tput civis >/dev/tty 2>/dev/null || true
     stty -echo -icanon 2>/dev/null || true
 
     echo "$selected"
@@ -77,34 +79,39 @@ _node_selector_whiptail() {
 # Returns (stdout):
 #   Selected node name, or empty string if cancelled
 _node_selector_ansi() {
-    # Temporarily restore terminal for interactive input
-    tput cnorm 2>/dev/null || true
-    stty echo icanon 2>/dev/null || true
-    tput clear
+    # All display output (tput, echo, printf prompts) is redirected to /dev/tty
+    # so it doesn't leak into stdout when this function runs inside $() capture.
+    # Only the final echo of the selected node goes to stdout (for capture).
 
-    echo "Select Worker Node"
-    echo "=================="
-    echo ""
+    # Temporarily restore terminal for interactive input
+    tput cnorm >/dev/tty 2>/dev/null || true
+    stty echo icanon 2>/dev/null || true
+    tput clear >/dev/tty 2>/dev/null || true
+
+    echo "Select Worker Node" >/dev/tty
+    echo "==================" >/dev/tty
+    echo "" >/dev/tty
 
     local i=1
     local node gpu_model gpu_count
     for node in "${NODE_LIST[@]}"; do
         gpu_model="$(get_node_label "$node" "$LABEL_GPU_PRODUCT")"
         gpu_count="$(get_node_label "$node" "$LABEL_GPU_COUNT")"
-        printf "  %d) %s  (%s, %s GPUs)\n" "$i" "$node" "$gpu_model" "$gpu_count"
+        printf "  %d) %s  (%s, %s GPUs)\n" "$i" "$node" "$gpu_model" "$gpu_count" >/dev/tty
         (( i++ ))
     done
 
-    echo ""
-    printf "Enter number (or 0 to cancel): "
+    echo "" >/dev/tty
+    printf "Enter number (or 0 to cancel): " >/dev/tty
     local choice
-    read -r choice
+    # Read user input from /dev/tty (stdin may be redirected inside $())
+    read -r choice </dev/tty
 
     # Restore TUI state
-    tput civis 2>/dev/null || true
+    tput civis >/dev/tty 2>/dev/null || true
     stty -echo -icanon 2>/dev/null || true
 
-    # Validate choice
+    # Validate choice -- only the selected node name goes to stdout
     if [[ "$choice" =~ ^[0-9]+$ ]] && (( choice >= 1 && choice <= ${#NODE_LIST[@]} )); then
         # Array is 0-indexed, user input is 1-indexed
         echo "${NODE_LIST[$(( choice - 1 ))]}"

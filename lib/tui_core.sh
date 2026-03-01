@@ -49,7 +49,7 @@ init_colors() {
         # setaf = set ANSI foreground; setab = set ANSI background
         C_HEADER_FG="$(tput bold)$(tput setaf 7)"          # Bold white
         C_HEADER_BG="$(tput setab 4)"                       # Blue background
-        C_BORDER="$(tput setaf 6)"                           # Cyan
+        C_BORDER="$(tput setaf 2)"                           # Green (NVIDIA brand)
         C_NODE_NAME="$(tput bold)$(tput setaf 7)"           # Bold white
         C_GPU_MODEL="$(tput setaf 5)"                        # Magenta
         C_GREEN="$(tput bold)$(tput setaf 2)"               # Bold green
@@ -58,7 +58,27 @@ init_colors() {
         C_GRAY="$(tput setaf 8 2>/dev/null || tput dim)"    # Dark gray (may not exist)
         C_FOOTER_FG="$(tput setaf 0)"                        # Black
         C_FOOTER_BG="$(tput setab 7)"                        # White background
-        C_REFRESH="$(tput setaf 6)"                          # Cyan
+        C_REFRESH="$(tput setaf 2)"                          # Green (NVIDIA brand)
+
+        # NEWT_COLORS controls whiptail dialog theming. Format is
+        # "widget=fg,bg:widget=fg,bg:..." where each entry sets the
+        # foreground/background pair for a UI element.
+        # Default newt theme uses pink/magenta background; override to
+        # black background with green accents matching the NVIDIA brand.
+        export NEWT_COLORS='
+            root=white,black
+            border=green,black
+            window=white,black
+            shadow=white,black
+            title=green,black
+            button=white,black
+            actbutton=white,green
+            listbox=white,black
+            actlistbox=white,green
+            textbox=white,black
+            label=white,black
+            helpline=white,black
+        '
     fi
 
     if [[ "$HAS_UNICODE" == true ]]; then
@@ -80,24 +100,28 @@ init_colors() {
 #   $1 - allocatable count
 #   $2 - inuse count
 #   $3 - available count (or "-" for not configured)
+#   $4 - width: field width for printf (default 5)
 #
 # Returns (stdout):
 #   Colorized string of the available value
 color_available() {
     local alloc="$1" inuse="$2" avail="$3"
+    # ${4:-5} = use caller-supplied width, or default to 5
+    local width="${4:-5}"
 
     if (( alloc == 0 )); then
         # Not configured -- show dash in gray
-        printf "%s%5s%s" "$C_GRAY" "-" "$C_RESET"
+        # %*s = right-justify to $width characters
+        printf "%s%*s%s" "$C_GRAY" "$width" "-" "$C_RESET"
     elif (( avail == 0 )); then
         # Fully consumed
-        printf "%s%5d%s" "$C_RED" "$avail" "$C_RESET"
+        printf "%s%*d%s" "$C_RED" "$width" "$avail" "$C_RESET"
     elif (( inuse > 0 )); then
         # Partially used
-        printf "%s%5d%s" "$C_YELLOW" "$avail" "$C_RESET"
+        printf "%s%*d%s" "$C_YELLOW" "$width" "$avail" "$C_RESET"
     else
         # Fully free
-        printf "%s%5d%s" "$C_GREEN" "$avail" "$C_RESET"
+        printf "%s%*d%s" "$C_GREEN" "$width" "$avail" "$C_RESET"
     fi
 }
 

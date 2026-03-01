@@ -178,7 +178,7 @@ draw_cluster_summary() {
         fi
 
         local avail_colored
-        avail_colored="$(color_available "$c_alloc" "$c_inuse" "$c_avail")"
+        avail_colored="$(color_available "$c_alloc" "$c_inuse" "$c_avail" "$avail_w")"
 
         local row_plain
         row_plain="$(printf "  %-${res_col_w}s  %${total_w}d  %${inuse_w}d  %${avail_w}s" \
@@ -300,10 +300,10 @@ draw_node_section() {
         local inuse_display avail_colored
         if (( alloc == 0 )); then
             inuse_display="-"
-            avail_colored="$(color_available 0 0 0)"
+            avail_colored="$(color_available 0 0 0 "$avail_w")"
         else
             inuse_display="$inuse"
-            avail_colored="$(color_available "$alloc" "$inuse" "$avail")"
+            avail_colored="$(color_available "$alloc" "$inuse" "$avail" "$avail_w")"
         fi
 
         local row_plain
