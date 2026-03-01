@@ -73,9 +73,8 @@ init_colors() {
         #   actsellistbox = highlighted item in a focused listbox (fixes
         #                   default pink by overriding to white-on-green)
         #   sellistbox    = selected item in an unfocused listbox
-        #   compactbutton = compact button base color (fallback for any whiptail
-        #                   call that omits --fb; primary fix is --fb which
-        #                   uses actbutton=white,green for focused buttons)
+        #   compactbutton = unstyled compact button variant (ensures Tab
+        #                   between OK/Cancel produces a visible change)
         #   acttextbox    = focused textbox background
         export NEWT_COLORS='root=white,black:border=green,black:window=white,black:shadow=white,black:title=green,black:button=black,white:actbutton=white,green:compactbutton=black,white:listbox=black,white:actlistbox=white,green:sellistbox=black,white:actsellistbox=white,green:textbox=white,black:acttextbox=white,black:label=white,black:helpline=white,black'
     fi
