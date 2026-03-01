@@ -81,9 +81,9 @@ init_colors() {
         #   acttextbox    = focused textbox background
         #   emptyscale/fullscale = scrollbar track/thumb used by some
         #                   newt builds for textbox scroll indicators.
-        #                   Explicit contrast keeps the right-side scrollbar
-        #                   visible on black dialog backgrounds.
-        export NEWT_COLORS='root=white,black:border=green,black:window=white,black:shadow=white,black:title=green,black:button=black,green:actbutton=black,white:compactbutton=black,white:listbox=black,white:actlistbox=white,green:sellistbox=black,white:actsellistbox=white,green:textbox=white,black:acttextbox=white,black:emptyscale=white,black:fullscale=black,green:label=white,black:helpline=white,black'
+        #                   Use palette-style single-color entries so the
+        #                   right column is not painted black-on-black.
+        export NEWT_COLORS='root=white,black:border=green,black:window=white,black:shadow=white,black:title=green,black:button=black,green:actbutton=black,white:compactbutton=black,white:listbox=black,white:actlistbox=white,green:sellistbox=black,white:actsellistbox=white,green:textbox=white,black:acttextbox=white,black:emptyscale=white:fullscale=green:label=white,black:helpline=white,black'
     fi
 
     if [[ "$HAS_UNICODE" == true ]]; then
