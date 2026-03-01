@@ -19,7 +19,7 @@
 # TUI auto-refresh interval in seconds (default: 5)
 # Controls how often the dashboard fetches new data from Kubernetes.
 # Higher values reduce API load; lower values give fresher data.
-REFRESH_INTERVAL=5
+REFRESH_INTERVAL=15
 
 # Default output mode: "tui" or "cli" (default: tui)
 # "tui" launches the interactive dashboard; "cli" prints a one-shot report.
@@ -67,7 +67,7 @@ WHOLE_GPU_RESOURCE=nvidia.com/gpu
 #   H100 / H200  : 1g.10gb, 1g.18gb, 1g.20gb, 1g.35gb, 2g.20gb,
 #                   2g.35gb, 3g.40gb, 3g.71gb, 4g.71gb, 7g.141gb
 #   B200          : (consult NVIDIA documentation for your firmware version)
-MIG_PROFILES=1g.10gb,1g.18gb,1g.20gb,1g.35gb,2g.20gb,2g.35gb,3g.40gb,3g.71gb,4g.71gb,7g.141gb
+MIG_PROFILES=1g.18gb,1g.35gb,2g.35gb,3g.71gb,4g.71gb,7g.141gb
 
 
 # ============================================================================
