@@ -1,0 +1,102 @@
+# ============================================================================
+# gpuctl Configuration File
+# ============================================================================
+# Place this file at /etc/gpuctl/gpuctl.conf
+# All settings are optional; gpuctl uses sensible defaults if this file
+# is missing or incomplete.  Defaults are tuned for a standard NVIDIA DGX
+# cluster running the NVIDIA GPU Operator with GPU Feature Discovery.
+#
+# Format: KEY=VALUE (one per line)
+# Lines starting with '#' are comments.
+# Unknown keys are silently ignored for forward compatibility.
+# ============================================================================
+
+
+# ============================================================================
+# GENERAL
+# ============================================================================
+
+# TUI auto-refresh interval in seconds (default: 5)
+# Controls how often the dashboard fetches new data from Kubernetes.
+# Higher values reduce API load; lower values give fresher data.
+REFRESH_INTERVAL=5
+
+# Default output mode: "tui" or "cli" (default: tui)
+# "tui" launches the interactive dashboard; "cli" prints a one-shot report.
+# Can be overridden at runtime with --cli or --text flags.
+DEFAULT_MODE=tui
+
+
+# ============================================================================
+# NODE DISCOVERY
+# ============================================================================
+
+# Kubernetes label selector used to find GPU-equipped worker nodes.
+# Passed directly to `kubectl get nodes -l <value>`.
+# Format: key=value (standard Kubernetes label selector syntax).
+NODE_SELECTOR=nvidia.com/gpu.present=true
+
+
+# ============================================================================
+# GPU RESOURCE NAMES
+# ============================================================================
+
+# Prefix that the NVIDIA device plugin uses for all GPU extended resources.
+# Used to identify GPU-related resource requests in pod specs.
+# Must end with '/' (the Kubernetes resource domain separator).
+GPU_RESOURCE_PREFIX=nvidia.com/
+
+# Kubernetes extended resource name for whole (non-MIG) GPUs.
+# Must include the full prefix (e.g., "nvidia.com/gpu").
+WHOLE_GPU_RESOURCE=nvidia.com/gpu
+
+# Known MIG profiles: comma-separated SHORT names (without the prefix).
+# The script automatically prepends "<GPU_RESOURCE_PREFIX>mig-" to each.
+# Order here determines the display order in tables (typically smallest to
+# largest slice).
+#
+# Profiles present in this list but absent on a node appear as "0 / - / -".
+# Profiles absent from this list but present on a node are NOT displayed.
+#
+# Update this list when your cluster's MIG configuration changes or when
+# new GPU generations introduce different MIG geometries.
+#
+# Common profiles by GPU generation:
+#   A100 (40 GB) : 1g.5gb, 2g.10gb, 3g.20gb, 4g.20gb, 7g.40gb
+#   A100 (80 GB) : 1g.10gb, 2g.20gb, 3g.40gb, 4g.40gb, 7g.80gb
+#   H100 / H200  : 1g.10gb, 1g.18gb, 1g.20gb, 1g.35gb, 2g.20gb,
+#                   2g.35gb, 3g.40gb, 3g.71gb, 4g.71gb, 7g.141gb
+#   B200          : (consult NVIDIA documentation for your firmware version)
+MIG_PROFILES=1g.10gb,1g.18gb,1g.20gb,1g.35gb,2g.20gb,2g.35gb,3g.40gb,3g.71gb,4g.71gb,7g.141gb
+
+
+# ============================================================================
+# NODE LABEL KEYS
+# ============================================================================
+# Labels applied by NVIDIA GPU Feature Discovery to each GPU-enabled node.
+# Customize these only if your GPU Operator version uses non-standard label
+# keys, or if you have applied your own labels.
+
+# GPU model name (e.g., "NVIDIA-H200")
+LABEL_GPU_PRODUCT=nvidia.com/gpu.product
+
+# Machine / chassis type (e.g., "DGXH200")
+LABEL_GPU_MACHINE=nvidia.com/gpu.machine
+
+# Total physical GPU count on the node (e.g., "8")
+LABEL_GPU_COUNT=nvidia.com/gpu.count
+
+# GPU memory in MiB (e.g., "143360")
+LABEL_GPU_MEMORY=nvidia.com/gpu.memory
+
+# Whether the GPUs support MIG (e.g., "true")
+LABEL_MIG_CAPABLE=nvidia.com/mig.capable
+
+# Current MIG configuration profile name (e.g., "all-balanced")
+LABEL_MIG_CONFIG=nvidia.com/mig.config
+
+# MIG strategy: "mixed", "single", or "none"
+LABEL_MIG_STRATEGY=nvidia.com/mig.strategy
+
+# Full CUDA driver version (e.g., "580.105.08")
+LABEL_CUDA_DRIVER=nvidia.com/cuda.driver-version.full
