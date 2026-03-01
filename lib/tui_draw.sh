@@ -266,11 +266,23 @@ draw_node_section() {
     tbl_top+="${BOX_TR}"
     draw_bordered_line "${C_BORDER}${tbl_top}${C_RESET}" "${#tbl_top}"
 
-    # Column headers
-    local col_hdr
-    col_hdr="$(printf "  %s %-${res_col_w}s %s %${total_w}s %s %${inuse_w}s %s %${avail_w}s %s" \
+    # Column headers -- apply C_BORDER only to box-drawing chars, bold
+    # white for header labels so they stand out from data rows
+    local col_hdr_plain
+    col_hdr_plain="$(printf "  %s %-${res_col_w}s %s %${total_w}s %s %${inuse_w}s %s %${avail_w}s %s" \
         "$BOX_V" "Resource" "$BOX_V" "Total" "$BOX_V" "In-Use" "$BOX_V" "$hdr_avail" "$BOX_V")"
-    draw_bordered_line "${C_BORDER}${col_hdr}${C_RESET}" "${#col_hdr}"
+    local col_hdr_colored
+    col_hdr_colored="$(printf "  %s%s%s %s%-${res_col_w}s%s %s%s%s %s%${total_w}s%s %s%s%s %s%${inuse_w}s%s %s%s%s %s%${avail_w}s%s %s%s%s" \
+        "$C_BORDER" "$BOX_V" "$C_RESET" \
+        "$C_BOLD" "Resource" "$C_RESET" \
+        "$C_BORDER" "$BOX_V" "$C_RESET" \
+        "$C_BOLD" "Total" "$C_RESET" \
+        "$C_BORDER" "$BOX_V" "$C_RESET" \
+        "$C_BOLD" "In-Use" "$C_RESET" \
+        "$C_BORDER" "$BOX_V" "$C_RESET" \
+        "$C_BOLD" "$hdr_avail" "$C_RESET" \
+        "$C_BORDER" "$BOX_V" "$C_RESET")"
+    draw_bordered_line "$col_hdr_colored" "${#col_hdr_plain}"
 
     # Header separator
     local tbl_sep="  ${BOX_LT}"
@@ -309,11 +321,19 @@ draw_node_section() {
         local row_plain
         row_plain="$(printf "  %s %-${res_col_w}s %s %${total_w}d %s %${inuse_w}s %s %${avail_w}s %s" \
             "$BOX_V" "$display_name" "$BOX_V" "$alloc" "$BOX_V" "$inuse_display" "$BOX_V" "" "$BOX_V")"
+        # Apply C_BORDER only to box-drawing chars (BOX_V), leaving data
+        # values in default white so only the Available column is colorized.
         local row_colored
-        row_colored="$(printf "  %s %-${res_col_w}s %s %${total_w}d %s %${inuse_w}s %s " \
-            "$BOX_V" "$display_name" "$BOX_V" "$alloc" "$BOX_V" "$inuse_display" "$BOX_V")${avail_colored}$(printf " %s" "$BOX_V")"
+        row_colored="$(printf "  %s%s%s %-${res_col_w}s %s%s%s %${total_w}d %s%s%s %${inuse_w}s %s%s%s " \
+            "$C_BORDER" "$BOX_V" "$C_RESET" \
+            "$display_name" \
+            "$C_BORDER" "$BOX_V" "$C_RESET" \
+            "$alloc" \
+            "$C_BORDER" "$BOX_V" "$C_RESET" \
+            "$inuse_display" \
+            "$C_BORDER" "$BOX_V" "$C_RESET")${avail_colored}$(printf " %s%s%s" "$C_BORDER" "$BOX_V" "$C_RESET")"
 
-        draw_bordered_line "${C_BORDER}${row_colored}${C_RESET}" "${#row_plain}"
+        draw_bordered_line "$row_colored" "${#row_plain}"
     done
 
     # Table bottom border

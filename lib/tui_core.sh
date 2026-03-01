@@ -71,9 +71,9 @@ init_colors() {
             window=white,black
             shadow=white,black
             title=green,black
-            button=white,black
+            button=black,white
             actbutton=white,green
-            listbox=white,black
+            listbox=black,white
             actlistbox=white,green
             textbox=white,black
             label=white,black
