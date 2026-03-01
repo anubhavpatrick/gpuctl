@@ -29,7 +29,7 @@ readonly GPUCTL_INSTALL_PATH="/usr/local/bin/gpuctl"
 # NVIDIA GPU Operator with GPU Feature Discovery.
 
 # --- General ---
-readonly DEFAULT_REFRESH_INTERVAL=5
+readonly DEFAULT_REFRESH_INTERVAL=15
 readonly DEFAULT_OUTPUT_MODE="tui"
 
 # --- Node Discovery ---
@@ -51,7 +51,7 @@ readonly DEFAULT_WHOLE_GPU_RESOURCE="nvidia.com/gpu"
 # Order determines display order in tables (smallest to largest slice).
 # Profiles with zero allocatable instances still appear in per-node tables
 # (shown as 0 / - / -) but are hidden from the cluster summary.
-readonly DEFAULT_MIG_PROFILES="1g.10gb,1g.18gb,1g.20gb,1g.35gb,2g.20gb,2g.35gb,3g.40gb,3g.71gb,4g.71gb,7g.141gb"
+readonly DEFAULT_MIG_PROFILES="1g.18gb,1g.35gb,2g.35gb,3g.71gb,4g.71gb,7g.141gb"
 
 # --- Node Label Keys ---
 # Labels applied by NVIDIA GPU Feature Discovery.  Each key maps to a piece
