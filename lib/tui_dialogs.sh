@@ -201,10 +201,17 @@ show_node_detail() {
         tput cnorm 2>/dev/null || true
         stty echo icanon 2>/dev/null || true
 
-        # printf interprets \n in $detail; whiptail --scrolltext enables
-        # scrolling if content exceeds the dialog height
+        # Render into a temporary file and use --textbox instead of --msgbox:
+        # this uses whiptail/newt's native scroll widget, which consistently
+        # shows the right-side scrollbar for overflow content.
+        local detail_text detail_tmp
         printf -v detail_text "%b" "$detail"
-        whiptail --title "$node" --scrolltext --msgbox "$detail_text" 24 70
+        detail_tmp="$(mktemp "/tmp/gpuctl-node-detail.XXXXXX")"
+        printf "%s\n" "$detail_text" > "$detail_tmp"
+
+        # Do not let dialog exit status skip temp cleanup under set -e.
+        whiptail --title "$node" --scrolltext --textbox "$detail_tmp" 24 70 || true
+        rm -f -- "$detail_tmp"
 
         tput civis 2>/dev/null || true
         stty -echo -icanon 2>/dev/null || true
