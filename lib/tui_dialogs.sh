@@ -152,7 +152,7 @@ show_node_detail() {
     for res_type in "${ALL_RESOURCE_TYPES[@]}"; do
         alloc="$(get_allocatable "$node" "$res_type")"
         inuse="$(get_inuse "$node" "$res_type")"
-        (( avail = alloc - inuse ))
+        avail=$(( alloc - inuse ))
 
         # Human-friendly name: "Whole GPU" or "MIG <profile>"
         if [[ "$res_type" == "$WHOLE_GPU_RESOURCE" ]]; then

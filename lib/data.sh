@@ -19,17 +19,22 @@
 
 # Associative arrays for per-node data storage.
 # Keys are node names; values are JSON strings or delimited data.
-# declare -A creates associative (key-value) arrays (requires Bash 4+).
-declare -A NODE_LABELS_JSON=()      # node -> full labels JSON object
-declare -A NODE_ALLOC_JSON=()       # node -> allocatable resources JSON object
-declare -A NODE_INUSE=()            # node -> "res1:count1,res2:count2,..." usage string
+# -gA = global associative array.  The -g flag is required because this file
+# is sourced from within the safe_source() function.  Without -g, `declare`
+# creates function-local variables that are destroyed when safe_source returns,
+# causing later associative subscripts (e.g., arr["node-name"]) to undergo
+# arithmetic evaluation instead of string-key lookup.
+declare -gA NODE_LABELS_JSON=()      # node -> full labels JSON object
+declare -gA NODE_ALLOC_JSON=()       # node -> allocatable resources JSON object
+declare -gA NODE_INUSE=()            # node -> "res1:count1,res2:count2,..." usage string
 
 # Ordered list of node names (bash arrays preserve insertion order)
-declare -a NODE_LIST=()
+# -ga = global indexed array (see above for why -g is needed)
+declare -ga NODE_LIST=()
 
 # Cluster-level aggregation
-declare -A CLUSTER_ALLOC=()         # resource -> total allocatable across cluster
-declare -A CLUSTER_INUSE=()         # resource -> total in-use across cluster
+declare -gA CLUSTER_ALLOC=()         # resource -> total allocatable across cluster
+declare -gA CLUSTER_INUSE=()         # resource -> total in-use across cluster
 
 # Fetch all GPU-enabled worker nodes in a single kubectl call.
 # Populates NODE_LIST, NODE_LABELS_JSON, and NODE_ALLOC_JSON.
@@ -207,9 +212,10 @@ compute_cluster_aggregates() {
             alloc="$(get_allocatable "$node" "$res_type")"
             inuse="$(get_inuse "$node" "$res_type")"
 
-            # (( )) for arithmetic evaluation
-            (( CLUSTER_ALLOC["$res_type"] = ${CLUSTER_ALLOC["$res_type"]:-0} + alloc ))
-            (( CLUSTER_INUSE["$res_type"] = ${CLUSTER_INUSE["$res_type"]:-0} + inuse ))
+            # Use var=$(( )) form instead of standalone (( var = )) because
+            # (( 0 )) returns exit code 1 which triggers set -e.
+            CLUSTER_ALLOC["$res_type"]=$(( ${CLUSTER_ALLOC["$res_type"]:-0} + alloc ))
+            CLUSTER_INUSE["$res_type"]=$(( ${CLUSTER_INUSE["$res_type"]:-0} + inuse ))
         done
     done
 }

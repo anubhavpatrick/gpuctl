@@ -92,9 +92,11 @@ LABEL_MIG_STRATEGY="$DEFAULT_LABEL_MIG_STRATEGY"
 LABEL_CUDA_DRIVER="$DEFAULT_LABEL_CUDA_DRIVER"
 
 # Derived arrays -- built by build_resource_arrays() after config is loaded.
-# Declared here so they exist at global scope.
-declare -a KNOWN_MIG_PROFILES=()    # fully-qualified: "nvidia.com/mig-1g.35gb" ...
-declare -a ALL_RESOURCE_TYPES=()    # whole GPU + all MIG profiles
+# -g flag is required because this file is sourced from within the safe_source()
+# function.  Without -g, `declare` creates function-local variables that are
+# destroyed when safe_source returns.
+declare -ga KNOWN_MIG_PROFILES=()    # fully-qualified: "nvidia.com/mig-1g.35gb" ...
+declare -ga ALL_RESOURCE_TYPES=()    # whole GPU + all MIG profiles
 
 # Build the MIG profile and resource type arrays from the (possibly
 # user-overridden) configuration values.  Must be called after load_config().

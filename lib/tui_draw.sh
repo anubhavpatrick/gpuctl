@@ -26,8 +26,8 @@
 draw_hline() {
     local left="$1" fill="$2" right="$3"
     local inner_width
-    # (( )) for arithmetic: inner width = total - 2 border chars
-    (( inner_width = TERM_COLS - 2 ))
+    # inner width = total - 2 border chars
+    inner_width=$(( TERM_COLS - 2 ))
     (( inner_width < 0 )) && inner_width=0
 
     local line="$left"
@@ -48,11 +48,11 @@ draw_hline() {
 draw_bordered_line() {
     local text="$1" visible_len="$2"
     local inner_width
-    (( inner_width = TERM_COLS - 2 ))
+    inner_width=$(( TERM_COLS - 2 ))
     (( inner_width < 0 )) && inner_width=0
 
     local pad_len
-    (( pad_len = inner_width - visible_len ))
+    pad_len=$(( inner_width - visible_len ))
     (( pad_len < 0 )) && pad_len=0
 
     # printf "%-*s" pads a string to a minimum width with spaces
@@ -84,11 +84,11 @@ draw_header() {
 
     # Title line -- centered
     local inner_width
-    (( inner_width = TERM_COLS - 2 ))
+    inner_width=$(( TERM_COLS - 2 ))
     local title_len=${#title}
     local title_pad
-    # (( )) for arithmetic: center by computing left padding
-    (( title_pad = (inner_width - title_len) / 2 ))
+    # Center by computing left padding
+    title_pad=$(( (inner_width - title_len) / 2 ))
     (( title_pad < 0 )) && title_pad=0
 
     local title_line
@@ -101,7 +101,7 @@ draw_header() {
     # Refresh info line -- centered
     local ref_len=${#refresh_info}
     local ref_pad
-    (( ref_pad = (inner_width - ref_len) / 2 ))
+    ref_pad=$(( (inner_width - ref_len) / 2 ))
     (( ref_pad < 0 )) && ref_pad=0
 
     local ref_line
@@ -116,7 +116,7 @@ draw_header() {
 # Draw the cluster-wide summary section.
 draw_cluster_summary() {
     local inner_width
-    (( inner_width = TERM_COLS - 2 ))
+    inner_width=$(( TERM_COLS - 2 ))
 
     # ${#NODE_LIST[@]} = number of GPU nodes
     local node_count="${#NODE_LIST[@]}"
@@ -125,7 +125,7 @@ draw_cluster_summary() {
     local label_len=${#label}
     local info_len=${#node_info}
     local gap
-    (( gap = inner_width - label_len - info_len - 2 ))
+    gap=$(( inner_width - label_len - info_len - 2 ))
     (( gap < 0 )) && gap=1
 
     local header_text
@@ -167,7 +167,7 @@ draw_cluster_summary() {
     for res_type in "${ALL_RESOURCE_TYPES[@]}"; do
         c_alloc="${CLUSTER_ALLOC[$res_type]:-0}"
         c_inuse="${CLUSTER_INUSE[$res_type]:-0}"
-        (( c_avail = c_alloc - c_inuse ))
+        c_avail=$(( c_alloc - c_inuse ))
 
         (( c_alloc == 0 )) && continue
 
@@ -202,7 +202,7 @@ draw_cluster_summary() {
 draw_node_section() {
     local node="$1"
     local inner_width
-    (( inner_width = TERM_COLS - 2 ))
+    inner_width=$(( TERM_COLS - 2 ))
 
     local gpu_model machine_type gpu_count mig_strategy
     gpu_model="$(get_node_label "$node" "$LABEL_GPU_PRODUCT")"
@@ -252,7 +252,7 @@ draw_node_section() {
 
     # Table header with box borders
     local tbl_inner
-    (( tbl_inner = res_col_w + total_w + inuse_w + avail_w + 9 ))
+    tbl_inner=$(( res_col_w + total_w + inuse_w + avail_w + 9 ))
 
     local tbl_top="  ${BOX_TL}"
     local ii
@@ -289,7 +289,7 @@ draw_node_section() {
     for res_type in "${ALL_RESOURCE_TYPES[@]}"; do
         alloc="$(get_allocatable "$node" "$res_type")"
         inuse="$(get_inuse "$node" "$res_type")"
-        (( avail = alloc - inuse ))
+        avail=$(( alloc - inuse ))
 
         display_name="$res_type"
         if [[ "$prefix_style" == "short" ]]; then
@@ -339,14 +339,14 @@ draw_node_section() {
 draw_footer() {
     local countdown="$1"
     local inner_width
-    (( inner_width = TERM_COLS - 2 ))
+    inner_width=$(( TERM_COLS - 2 ))
 
     local keys="  [R] Refresh   [N] Node Detail   [H] Help   [Q] Quit"
     local timer="Refresh in: ${countdown}s  "
     local keys_len=${#keys}
     local timer_len=${#timer}
     local gap
-    (( gap = inner_width - keys_len - timer_len ))
+    gap=$(( inner_width - keys_len - timer_len ))
     (( gap < 0 )) && gap=1
 
     local footer_text
@@ -396,13 +396,14 @@ draw_dashboard() {
     local nodes_shown=0
     local max_nodes_visible
     # Estimate: each node section ~12 lines; leave room for header (6) + footer (3)
-    (( max_nodes_visible = (TERM_ROWS - 9) / 12 ))
+    max_nodes_visible=$(( (TERM_ROWS - 9) / 12 ))
     (( max_nodes_visible < 1 )) && max_nodes_visible=1
 
     for node in "${nodes_to_show[@]}"; do
         (( nodes_shown >= max_nodes_visible )) && break
         draw_node_section "$node"
-        (( nodes_shown++ ))
+        # || true prevents set -e exit: (( 0++ )) returns 0, and (( 0 )) = exit code 1
+        (( nodes_shown++ )) || true
     done
 
     # If some nodes were truncated, show indicator

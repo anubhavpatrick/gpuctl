@@ -46,7 +46,7 @@ print_cli_output() {
         for res_type in "${ALL_RESOURCE_TYPES[@]}"; do
             c_alloc="${CLUSTER_ALLOC[$res_type]:-0}"
             c_inuse="${CLUSTER_INUSE[$res_type]:-0}"
-            (( c_avail = c_alloc - c_inuse ))
+            c_avail=$(( c_alloc - c_inuse ))
 
             # Cluster summary skips resource types with zero total (FR-10)
             (( c_alloc == 0 )) && continue
@@ -86,7 +86,7 @@ print_cli_output() {
         for res_type in "${ALL_RESOURCE_TYPES[@]}"; do
             alloc="$(get_allocatable "$node" "$res_type")"
             inuse="$(get_inuse "$node" "$res_type")"
-            (( avail = alloc - inuse ))
+            avail=$(( alloc - inuse ))
 
             # Resources with allocatable=0 show dashes for in-use/available
             if (( alloc == 0 )); then
