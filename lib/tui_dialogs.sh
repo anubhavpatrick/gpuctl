@@ -59,8 +59,10 @@ _node_selector_whiptail() {
 
     local selected
     # whiptail --menu: title, height, width, list-height, then tag/item pairs.
+    # --fb = full-size buttons (required so actbutton colors apply; compact
+    # buttons use inverted compactbutton colors which are invisible on black).
     # Writes selection to stderr (3>&1 1>&2 2>&3 swaps stdout/stderr to capture).
-    selected="$(whiptail --title "Select Worker Node" \
+    selected="$(whiptail --title "Select Worker Node" --fb \
         --menu "Choose a node to view details:" \
         $(( menu_height + 8 )) 50 "$menu_height" \
         "${menu_items[@]}" \
@@ -201,10 +203,31 @@ show_node_detail() {
         tput cnorm 2>/dev/null || true
         stty echo icanon 2>/dev/null || true
 
-        # printf interprets \n in $detail; whiptail --scrolltext enables
-        # scrolling if content exceeds the dialog height
+        # printf %b interprets \n escape sequences in $detail
         printf -v detail_text "%b" "$detail"
-        whiptail --title "$node" --scrolltext --msgbox "$detail_text" 24 70
+
+        # Count content lines to compute dialog height dynamically
+        local line_count
+        line_count="$(printf "%s" "$detail_text" | wc -l)"
+        # Dialog chrome overhead: ~7 lines (top/bottom border, title bar,
+        # padding around textbox, and button area at bottom)
+        local dialog_height=$(( line_count + 7 ))
+        local scroll_flag=""
+
+        # Only enable --scrolltext when content exceeds available terminal
+        # space.  Without --scrolltext, whiptail renders the right │ border
+        # on all lines.  With --scrolltext, the scrollbar column physically
+        # replaces the right border (a whiptail rendering limitation), but
+        # the scrollbar itself serves as the visual boundary.
+        if (( dialog_height > TERM_ROWS - 2 )); then
+            dialog_height=$(( TERM_ROWS - 2 ))
+            scroll_flag="--scrolltext"
+        fi
+
+        # --fb = full-size buttons (required so actbutton colors apply)
+        # $scroll_flag is intentionally unquoted: expands to nothing when
+        # empty, avoiding an empty argument to whiptail
+        whiptail --title "$node" --fb $scroll_flag --msgbox "$detail_text" "$dialog_height" 70
 
         tput civis 2>/dev/null || true
         stty -echo -icanon 2>/dev/null || true
@@ -245,7 +268,8 @@ show_help() {
         stty echo icanon 2>/dev/null || true
 
         printf -v help_display "%b" "$help_text"
-        whiptail --title "Help" --msgbox "$help_display" 18 50
+        # --fb = full-size buttons (required so actbutton colors apply)
+        whiptail --title "Help" --fb --msgbox "$help_display" 18 50
 
         tput civis 2>/dev/null || true
         stty -echo -icanon 2>/dev/null || true
