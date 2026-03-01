@@ -130,12 +130,16 @@ draw_cluster_summary() {
 
     local header_text
     header_text="${C_BOLD}${label}${C_RESET}$(printf "%*s" "$gap" "")${node_info}"
-    draw_bordered_line "$header_text" "$inner_width"
+    # Actual visible chars = label + gap + info (the -2 gap padding means
+    # visible content is shorter than inner_width; pass true length so
+    # draw_bordered_line pads correctly to reach the right border)
+    local header_visible=$(( label_len + gap + info_len ))
+    draw_bordered_line "$header_text" "$header_visible"
 
-    # Thin separator
+    # Thin separator: 2-char left padding + horizontal fill = inner_width total
     local sep_line="  "
     local sep_i
-    for (( sep_i = 0; sep_i < inner_width - 4; sep_i++ )); do
+    for (( sep_i = 0; sep_i < inner_width - 2; sep_i++ )); do
         sep_line+="$BOX_H"
     done
     draw_bordered_line "${C_BORDER}${sep_line}${C_RESET}" "$inner_width"
