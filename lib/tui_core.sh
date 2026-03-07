@@ -147,6 +147,10 @@ TUI_INITIALIZED=false
 init_terminal() {
     TUI_INITIALIZED=true
 
+    # stty -g = save all terminal settings as a colon-separated string
+    # for exact restoration later (more robust than restoring individual flags)
+    SAVED_TTY_STATE="$(stty -g 2>/dev/null || true)"
+
     # tput smcup = enter alternate screen buffer (preserves user's scrollback)
     tput smcup 2>/dev/null || true
     # tput civis = make cursor invisible
@@ -156,9 +160,13 @@ init_terminal() {
     # single characters immediately
     stty -echo -icanon 2>/dev/null || true
 
-    # trap registers cleanup_terminal to run on these signals:
-    # EXIT = normal exit, INT = Ctrl+C, TERM = kill, HUP = terminal closed
-    trap cleanup_terminal EXIT INT TERM HUP
+    # EXIT trap handles cleanup on any exit path
+    trap cleanup_terminal EXIT
+    # Signal traps call exit with conventional codes (128 + signal_number),
+    # which triggers the EXIT trap for cleanup
+    trap 'exit 130' INT   # 128 + 2 (SIGINT / Ctrl+C)
+    trap 'exit 143' TERM  # 128 + 15 (SIGTERM / kill)
+    trap 'exit 129' HUP   # 128 + 1 (SIGHUP / terminal closed)
 
     # SIGWINCH is sent when the terminal is resized
     trap handle_resize WINCH
@@ -177,8 +185,13 @@ cleanup_terminal() {
     tput cnorm 2>/dev/null || true
     # tput rmcup = leave alternate screen buffer (restores user's prior screen)
     tput rmcup 2>/dev/null || true
-    # Restore echo and canonical mode
-    stty echo icanon 2>/dev/null || true
+    # Restore terminal to exact pre-init state if saved, otherwise fall back
+    # to restoring the two settings we explicitly changed
+    if [[ -n "$SAVED_TTY_STATE" ]]; then
+        stty "$SAVED_TTY_STATE" 2>/dev/null || true
+    else
+        stty echo icanon 2>/dev/null || true
+    fi
 
     echo ""
 }
